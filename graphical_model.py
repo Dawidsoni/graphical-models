@@ -5,7 +5,6 @@ class GraphicalModel(object):
         self.factors = []
 
     def add_factor(self, factor):
-        for random_variable in factor.random_variables:
-            self.random_variables.add(random_variable)
+        self.random_variables.update(factor.random_variables)
         self.factors.append(factor)
         return self

@@ -30,7 +30,7 @@ class Factor(object):
         return self
 
     def get_random_variables_assignments(self):
-        assignments = list(map(lambda x: (x, ), self.random_variables[0]))
+        assignments = list(map(lambda x: (x, ), self.random_variables[0].values))
         for i in range(1, len(self.random_variables)):
             assignments = [assignment + (x, ) for assignment in assignments for x in self.random_variables[i].values]
         return assignments
@@ -51,18 +51,19 @@ class Factor(object):
     def get_inverse(self):
         inverse_factor = Factor(self.random_variables)
         for assignment in self.get_random_variables_assignments():
-            inverse_factor.add_value(assignment, 1 / self.get_value(assignment))
+            assigned_value = self.get_value(assignment)
+            inverse_factor.add_value(assignment, 1 / assigned_value if assigned_value != 0 else float("inf"))
         return inverse_factor
 
     def get_multiplied(self, factor):
         summed_random_variables = list(set(self.random_variables).union(factor.random_variables))
-        indexes_of_random_variables = {x[1]: x[0] for x in enumerate(summed_random_variables)}
-        multiplied_factor = Factor(summed_random_variables)
-        for assignment in multiplied_factor.get_random_variables_assignments():
-            left_value = self.get_value(map(lambda x: indexes_of_random_variables[x], self.random_variables))
-            right_value = factor.get_value(map(lambda x: indexes_of_random_variables[x], factor.random_variables))
-            multiplied_factor.add_value(assignment, left_value * right_value)
-        return multiplied_factor
+        indexes_of_variables = {x[1]: x[0] for x in enumerate(summed_random_variables)}
+        product_factor = Factor(summed_random_variables)
+        for assignment in product_factor.get_random_variables_assignments():
+            left_assignment = tuple(map(lambda x: assignment[indexes_of_variables[x]], self.random_variables))
+            right_assignment = tuple(map(lambda x: assignment[indexes_of_variables[x]], factor.random_variables))
+            product_factor.add_value(assignment, self.get_value(left_assignment) * factor.get_value(right_assignment))
+        return product_factor
 
     def get_sum_marginalized(self, eliminated_random_variables):
         factor_random_variables = list(set(self.random_variables).difference(eliminated_random_variables))
@@ -105,6 +106,6 @@ class Factor(object):
                 evidence_random_variables.append(random_variable)
         evidence_factor = Factor(evidence_random_variables)
         for assignment in evidence_factor.get_random_variables_assignments():
-            evidence_factor.add_value(self.get_value(assignment))
+            evidence_factor.add_value(assignment, self.get_value(assignment))
         return evidence_factor
 
