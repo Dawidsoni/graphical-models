@@ -1,16 +1,31 @@
 from functools import reduce
 
+from random_variable import RandomVariable
+
 
 class VeMarginalInference(object):
 
     def __init__(self, graphical_model, ordering_strategy):
         self.graphical_model = graphical_model
         self.ordering_strategy = ordering_strategy
-        self.normalizing_constant = self.get_marginal_factor([], {})
+        self.normalizing_constant = self._get_marginal_potential_factor([], {}).get_value([])
 
-    def _get_marginal_probability_factor(self, marginal_variables, variables_evidences):
+    @staticmethod
+    def _get_variables_with_evidences(random_variables, variables_evidences):
+        variables_with_evidences = []
+        for variable in random_variables:
+            if variable in variables_evidences:
+                variables_with_evidences.append(RandomVariable(variable.name, (variables_evidences[variable], )))
+            else:
+                variables_with_evidences.append(variable)
+        return variables_with_evidences
+
+    def _get_marginal_potential_factor(self, marginal_variables, variables_evidences):
         factors = list(map(lambda x: x.get_with_evidences(variables_evidences), self.graphical_model.factors))
-        variables_to_eliminate = list(set(self.graphical_model.random_variables).difference(marginal_variables))
+        random_variables = self.graphical_model.random_variables
+        random_variables = self._get_variables_with_evidences(random_variables, variables_evidences)
+        marginal_variables = self._get_variables_with_evidences(marginal_variables, variables_evidences)
+        variables_to_eliminate = list(set(random_variables).difference(marginal_variables))
         elimination_ordering = self.ordering_strategy(factors, variables_to_eliminate)
         variables_to_eliminate = list(map(lambda x: variables_to_eliminate[x], elimination_ordering))
         for random_variable in variables_to_eliminate:
@@ -19,9 +34,13 @@ class VeMarginalInference(object):
             product_factor = reduce(lambda x, y: x.get_multiplied(y), variable_factors)
             marginalized_factor = product_factor.get_sum_marginalized([random_variable])
             factors = non_variable_factors + [marginalized_factor]
-        return reduce(lambda x, y: x.get_multiplied(y), factors).get_multiplied(1 / self.normalizing_constant)
+        return reduce(lambda x, y: x.get_multiplied(y), factors)
+
+    def _get_marginal_probability_factor(self, marginal_variables, variables_evidences):
+        potential_factor = self._get_marginal_potential_factor(marginal_variables, variables_evidences)
+        return potential_factor.get_constant_multiplied(1 / self.normalizing_constant)
 
     def get_marginal_factor(self, marginal_variables, variables_evidences):
         marginal_factor = self._get_marginal_probability_factor(marginal_variables, variables_evidences)
         evidence_factor = self._get_marginal_probability_factor([], variables_evidences)
-        return marginal_factor.get_multiplied(evidence_factor.get_inverse())
+        return marginal_factor.get_constant_multiplied(1 / evidence_factor.get_value([]))
