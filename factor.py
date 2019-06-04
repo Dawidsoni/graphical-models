@@ -111,3 +111,6 @@ class Factor(object):
             evidence_factor.add_value(assignment, self.get_value(assignment))
         return evidence_factor
 
+    def get_normalized(self):
+        factors_sum = sum(map(lambda x: self.get_value(x), self.get_random_variables_assignments()))
+        return self.get_constant_multiplied(1 / factors_sum)

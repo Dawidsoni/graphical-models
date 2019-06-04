@@ -102,3 +102,13 @@ class TestFactor(unittest.TestCase):
         self.assertEqual(product_factor.get_value({'x': 2, 'y': 5, 'z': 2}), 0)
         self.assertEqual(product_factor.get_value({'x': 2, 'y': 5, 'z': 2}), 0)
 
+    def test_get_normalized(self):
+        factor = Factor(self.random_variables)
+        factor.add_value([1, 3, 2], 10).add_value([2, 4, 2], 20).add_value([2, 5, 2], 30)
+        factor = factor.get_normalized()
+        self.assertAlmostEquals(1 / 6, factor.get_value([1, 3, 2]))
+        self.assertAlmostEquals(1 / 3, factor.get_value([2, 4, 2]))
+        self.assertAlmostEquals(1 / 2, factor.get_value([2, 5, 2]))
+        self.assertAlmostEquals(0, factor.get_value([1, 4, 2]))
+        self.assertAlmostEquals(0, factor.get_value([1, 5, 2]))
+        self.assertAlmostEquals(0, factor.get_value([2, 3, 2]))
