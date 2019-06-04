@@ -2,7 +2,7 @@ import unittest
 
 from factor import Factor
 from graphical_model import GraphicalModel
-from random_variable import RandomVariable
+from random_variables import RandomVariable
 
 
 class TestGraphicalModel(unittest.TestCase):

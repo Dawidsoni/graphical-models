@@ -1,6 +1,6 @@
 from collections import Counter
 
-from random_variable import RandomVariable
+from random_variables import RandomVariable
 
 
 class Factor(object):
@@ -30,6 +30,8 @@ class Factor(object):
         return self
 
     def get_random_variables_assignments(self):
+        if len(self.random_variables) == 0:
+            return [[]]
         assignments = list(map(lambda x: (x, ), self.random_variables[0].values))
         for i in range(1, len(self.random_variables)):
             assignments = [assignment + (x, ) for assignment in assignments for x in self.random_variables[i].values]
@@ -78,7 +80,7 @@ class Factor(object):
             marginalized_factor.add_value(variable_values, factor_value)
         return marginalized_factor
 
-    def get_max_marginalized_with_assignments(self, eliminated_random_variables):
+    def get_max_marginalized(self, eliminated_random_variables):
         factor_random_variables = list(set(self.random_variables).difference(eliminated_random_variables))
         indexes_of_variables = {x[1]: x[0] for x in enumerate(self.random_variables)}
         indexes_of_eliminated_variables = list(map(lambda x: indexes_of_variables[x], eliminated_random_variables))
@@ -89,7 +91,7 @@ class Factor(object):
         for assignment in self.get_random_variables_assignments():
             marginalized_assignment = tuple(map(lambda x: assignment[x], indexes_of_factor_variables))
             eliminated_assignment = tuple(map(lambda x: assignment[x], indexes_of_eliminated_variables))
-            if marginalized_assignments[marginalized_assignment] < self.get_value(assignment):
+            if marginalized_assignments[marginalized_assignment] <= self.get_value(assignment):
                 marginalized_assignments[marginalized_assignment] = self.get_value(assignment)
                 eliminated_variables_assignments[marginalized_assignment] = eliminated_assignment
         for variable_values, factor_value in marginalized_assignments.items():

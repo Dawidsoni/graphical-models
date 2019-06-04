@@ -2,7 +2,7 @@ import unittest
 
 from factor import Factor
 from ordering_strategies import min_neighbours_ordering
-from random_variable import RandomVariable
+from random_variables import RandomVariable
 
 
 class TestOrderingStrategies(unittest.TestCase):

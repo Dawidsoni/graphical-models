@@ -2,7 +2,7 @@ import unittest
 
 from factor import Factor
 from graphical_model import GraphicalModel
-from random_variable import RandomVariable
+from random_variables import RandomVariable
 from ve_marginal_inference import VeMarginalInference
 from ordering_strategies import min_neighbours_ordering
 
