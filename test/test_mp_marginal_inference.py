@@ -30,7 +30,7 @@ class TestVeMarginalInference(unittest.TestCase):
         self.assertAlmostEqual(0.2, marginal_factor.get_value([1]))
         self.assertAlmostEqual(0.8, marginal_factor.get_value([2]))
 
-    def test_three_variables(self):
+    def test_marginal_x_three_variables(self):
         x_factor = Factor([self.random_variables[0]])
         x_factor.add_value([1], 1).add_value([2], 2)
         xy_factor = Factor([self.random_variables[0], self.random_variables[1]])
@@ -43,6 +43,21 @@ class TestVeMarginalInference(unittest.TestCase):
         marginal_factor = marginal_inference.get_marginal_factor(self.random_variables[0])
         self.assertAlmostEqual(0.2, marginal_factor.get_value([1]))
         self.assertAlmostEqual(0.8, marginal_factor.get_value([2]))
+
+    def test_marginal_y_three_variables(self):
+        x_factor = Factor([self.random_variables[0]])
+        x_factor.add_value([1], 1).add_value([2], 2)
+        xy_factor = Factor([self.random_variables[0], self.random_variables[1]])
+        xy_factor.add_value([1, 3], 5).add_value([1, 4], 20).add_value([2, 5], 30)
+        xz_factor = Factor([self.random_variables[0], self.random_variables[2]])
+        xz_factor.add_value([1, 2], 12).add_value([2, 2], 20)
+        graphical_model = GraphicalModel()
+        graphical_model.add_factor(x_factor).add_factor(xy_factor).add_factor(xz_factor)
+        marginal_inference = MpMarginalInference(graphical_model)
+        marginal_factor = marginal_inference.get_marginal_factor(self.random_variables[1])
+        self.assertAlmostEqual(0.04, marginal_factor.get_value([3]))
+        self.assertAlmostEqual(0.16, marginal_factor.get_value([4]))
+        self.assertAlmostEqual(0.8, marginal_factor.get_value([5]))
 
     @unittest.expectedFailure
     def test_cycle(self):
